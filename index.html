@@ -168,7 +168,52 @@
   }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-  @media (max-width: 860px) { .kpis { grid-template-columns: repeat(2, 1fr); } }
+  /* Auth */
+  [hidden] { display: none !important; }
+  .auth-screen { min-height: 100vh; display: grid; place-items: center; padding: 24px 16px; }
+  .auth-card { width: 100%; max-width: 420px; padding: 36px 32px; }
+  .auth-card .logo { width: 56px; height: 56px; }
+  .auth-card h1 { font-size: 1.6rem; margin: 14px 0 4px; }
+  .auth-card .lead { color: var(--muted); margin: 0 0 24px; font-size: .95rem; }
+  .form-field { margin-bottom: 16px; }
+  .form-field label { display: block; font-size: .85rem; font-weight: 500; color: var(--muted); margin-bottom: 6px; }
+  .input, select.input {
+    width: 100%; border: 1px solid var(--border); background: var(--surface); border-radius: 10px;
+    padding: 11px 14px; font-size: 1rem;
+  }
+  .input:focus { outline: 2px solid var(--accent); outline-offset: -1px; border-color: transparent; }
+  .form-error { color: var(--accent-text); font-size: .88rem; font-weight: 500; min-height: 1.3em; margin: 0 0 12px; }
+  .btn.block { width: 100%; padding: 13px 16px; font-size: 1rem; }
+
+  .header-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .user-chip { display: flex; align-items: center; gap: 10px; padding: 6px 6px 6px 6px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface); }
+  .avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--accent-soft); color: var(--accent-text); display: grid; place-items: center; font-weight: 700; font-size: .85rem; }
+  .user-chip .who { font-weight: 600; font-size: .9rem; line-height: 1.1; }
+  .user-chip .who small { display: block; color: var(--faint); font-weight: 500; font-size: .75rem; }
+  .user-chip .btn { padding: 6px 12px; font-size: .82rem; box-shadow: none; }
+
+  /* Users tab */
+  .users-layout { display: grid; grid-template-columns: 1.4fr 1fr; gap: 16px; align-items: start; }
+  .panel-head { padding: 20px 22px; border-bottom: 1px solid var(--border); }
+  .panel-head h2 { margin: 0; font-size: 1.15rem; }
+  .panel-head p { margin: 2px 0 0; color: var(--muted); font-size: .88rem; }
+  .panel-body { padding: 20px 22px; }
+  .role { font-size: .75rem; font-weight: 700; border-radius: 6px; padding: 3px 9px; background: var(--surface-2); color: var(--muted); border: 1px solid var(--border); }
+  .role.admin { background: var(--accent-soft); color: var(--accent-text); border-color: transparent; }
+  #usersTable td { white-space: nowrap; }
+  #usersTable .btn { padding: 6px 12px; font-size: .82rem; }
+
+  dialog { border: 0; padding: 0; border-radius: var(--radius); background: var(--surface); color: var(--text); width: min(420px, calc(100vw - 32px)); box-shadow: 0 20px 50px rgba(0,0,0,.25); }
+  dialog::backdrop { background: rgba(16, 24, 40, .45); }
+  dialog form { padding: 24px; }
+  dialog h2 { margin: 0 0 4px; font-size: 1.2rem; }
+  dialog .lead { margin: 0 0 18px; color: var(--muted); font-size: .9rem; }
+  .dialog-actions { display: flex; justify-content: flex-end; gap: 8px; }
+
+  @media (max-width: 860px) {
+    .kpis { grid-template-columns: repeat(2, 1fr); }
+    .users-layout { grid-template-columns: 1fr; }
+  }
   @media (max-width: 520px) {
     html { font-size: 17px; }
     .wrap { padding: 20px 16px 48px; }
@@ -180,27 +225,57 @@
 </style>
 </head>
 <body>
-<div class="wrap">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="cup" viewBox="0 0 48 48">
+    <path d="M17 9c-2 2 2 4 0 6M24 7c-2 2 2 4 0 6M31 9c-2 2 2 4 0 6" fill="none" stroke="#a78bfa" stroke-width="2.4" stroke-linecap="round"/>
+    <path d="M36 23h3a5 5 0 0 1 0 10h-3" fill="none" stroke="#38bdf8" stroke-width="3.2" stroke-linecap="round"/>
+    <path d="M9 19h29v12a12 12 0 0 1-12 12h-5A12 12 0 0 1 9 31z" fill="#fb923c"/>
+    <path d="M9 19h29v4H9z" fill="#fdba74"/>
+    <circle cx="18" cy="29" r="2" fill="#3b2a20"/><circle cx="29" cy="29" r="2" fill="#3b2a20"/>
+    <circle cx="15" cy="33" r="2.2" fill="#f472b6" opacity=".8"/><circle cx="32" cy="33" r="2.2" fill="#f472b6" opacity=".8"/>
+    <path d="M21 33q2.5 2.6 5 0" fill="none" stroke="#3b2a20" stroke-width="1.8" stroke-linecap="round"/>
+    <ellipse cx="23.5" cy="44.5" rx="17" ry="2" fill="#4ade80" opacity=".55"/>
+  </symbol>
+</svg>
+
+<div class="auth-screen" id="loginScreen" hidden>
+  <form class="card auth-card" id="loginForm" novalidate>
+    <svg class="logo" aria-hidden="true"><use href="#cup"/></svg>
+    <h1>Super Outlet Inventory</h1>
+    <p class="lead">Sign in to view and update stock.</p>
+    <div class="form-field">
+      <label for="loginUser">Username</label>
+      <input class="input" id="loginUser" autocomplete="username" autocapitalize="none" spellcheck="false" required>
+    </div>
+    <div class="form-field">
+      <label for="loginPass">Password</label>
+      <input class="input" id="loginPass" type="password" autocomplete="current-password" required>
+    </div>
+    <p class="form-error" id="loginError" role="alert"></p>
+    <button class="btn primary block" id="loginBtn" type="submit">Sign in</button>
+  </form>
+</div>
+
+<div class="wrap" id="app" hidden>
   <header class="top">
     <div>
       <p class="eyebrow">
-        <svg class="logo" viewBox="0 0 48 48" aria-hidden="true">
-          <path d="M17 9c-2 2 2 4 0 6M24 7c-2 2 2 4 0 6M31 9c-2 2 2 4 0 6" fill="none" stroke="#a78bfa" stroke-width="2.4" stroke-linecap="round"/>
-          <path d="M36 23h3a5 5 0 0 1 0 10h-3" fill="none" stroke="#38bdf8" stroke-width="3.2" stroke-linecap="round"/>
-          <path d="M9 19h29v12a12 12 0 0 1-12 12h-5A12 12 0 0 1 9 31z" fill="#fb923c"/>
-          <path d="M9 19h29v4H9z" fill="#fdba74"/>
-          <circle cx="18" cy="29" r="2" fill="#3b2a20"/><circle cx="29" cy="29" r="2" fill="#3b2a20"/>
-          <circle cx="15" cy="33" r="2.2" fill="#f472b6" opacity=".8"/><circle cx="32" cy="33" r="2.2" fill="#f472b6" opacity=".8"/>
-          <path d="M21 33q2.5 2.6 5 0" fill="none" stroke="#3b2a20" stroke-width="1.8" stroke-linecap="round"/>
-          <ellipse cx="23.5" cy="44.5" rx="17" ry="2" fill="#4ade80" opacity=".55"/>
-        </svg>
+        <svg class="logo" aria-hidden="true"><use href="#cup"/></svg>
         Super Outlet Inventory
       </p>
       <h1>Stock Tracker</h1>
     </div>
-    <div class="sync">
-      <span id="syncText"><span class="dot"></span>Connecting…</span>
-      <button class="btn" id="refreshBtn" type="button">Refresh</button>
+    <div class="header-right">
+      <div class="sync">
+        <span id="syncText"><span class="dot"></span>Connecting…</span>
+        <button class="btn" id="refreshBtn" type="button">Refresh</button>
+      </div>
+      <div class="user-chip">
+        <span class="avatar" id="userAvatar"></span>
+        <span class="who"><span id="userName"></span><small id="userRole"></small></span>
+        <button class="btn ghost" id="changePwBtn" type="button">Change password</button>
+        <button class="btn" id="signOutBtn" type="button">Sign out</button>
+      </div>
     </div>
   </header>
 
@@ -212,16 +287,47 @@
 
   <main id="view"><div class="card skeleton">Loading stock…</div></main>
 </div>
+
+<dialog id="pwDialog">
+  <form id="pwForm" method="dialog" novalidate>
+    <h2 id="pwTitle">Change password</h2>
+    <p class="lead" id="pwLead"></p>
+    <div class="form-field">
+      <label for="pwNew">New password</label>
+      <input class="input" id="pwNew" type="password" autocomplete="new-password" minlength="6">
+    </div>
+    <div class="form-field">
+      <label for="pwConfirm">Confirm new password</label>
+      <input class="input" id="pwConfirm" type="password" autocomplete="new-password" minlength="6">
+    </div>
+    <p class="form-error" id="pwError" role="alert"></p>
+    <div class="dialog-actions">
+      <button class="btn" type="button" id="pwCancel">Cancel</button>
+      <button class="btn primary" type="submit" id="pwSubmit">Update password</button>
+    </div>
+  </form>
+</dialog>
+
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 const SUPABASE_URL = 'https://izsqgsqsofyyfkbqkgol.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_e2MLdF6EhsfeeOOyN4PYhA_vrmhd4-y';
+// Usernames sign in through Supabase Auth as <username>@<EMAIL_DOMAIN>.
+const EMAIL_DOMAIN = 'superoutlet.local';
 const OUTLET_ORDER = ['Tampines', 'Orchard', 'Jurong'];
 const CATEGORY_ORDER = ['Dairy', 'Coffee', 'Powders & Syrups', 'Cups & Packaging', 'Bakery', 'Other'];
 const ORDER_TAB = '__order';
+const USERS_TAB = '__users';
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const state = {
+  user: null,        // Supabase auth user
+  profile: null,     // {username, role}
+  users: [],         // admin: all profiles
+  pwTarget: null,    // null = own password, else {id, username}
   rows: [],          // latest_stock rows
   outlets: [],       // [{id, name}]
   tab: null,
@@ -239,25 +345,73 @@ const fmtDate = (d) => new Date(d + 'T00:00:00').toLocaleDateString('en-SG', { d
 const catRank = (c) => { const i = CATEGORY_ORDER.indexOf(c); return i === -1 ? 99 : i; };
 const shortfall = (qty, reorder) => Math.max(reorder - qty, 0);
 
-/* ---------- Supabase REST ---------- */
-async function api(path, opts = {}) {
-  const res = await fetch(SUPABASE_URL + '/rest/v1/' + path, {
-    ...opts,
-    headers: { apikey: SUPABASE_KEY, 'Content-Type': 'application/json', ...(opts.headers || {}) },
+const isAdmin = () => state.profile && state.profile.role === 'admin';
+
+/* ---------- Auth ---------- */
+async function boot() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) await enter(session.user);
+  else showLogin();
+  sb.auth.onAuthStateChange((event) => {
+    if (event === 'SIGNED_OUT') showLogin();
   });
-  if (!res.ok) {
-    let msg = res.status + ' ' + res.statusText;
-    try { const j = await res.json(); msg = j.message || msg; } catch (e) {}
-    throw new Error(msg);
-  }
-  const text = await res.text();
-  return text ? JSON.parse(text) : null;
 }
 
+async function enter(user) {
+  const { data: profile, error } = await sb.from('profiles').select('username, role').eq('id', user.id).maybeSingle();
+  if (error || !profile) {
+    await sb.auth.signOut();
+    showLogin(error ? 'Couldn’t check your account: ' + error.message : 'This account doesn’t have access to the inventory.');
+    return;
+  }
+  state.user = user;
+  state.profile = profile;
+  $('userName').textContent = profile.username;
+  $('userRole').textContent = profile.role === 'admin' ? 'Admin' : 'Staff';
+  $('userAvatar').textContent = profile.username.slice(0, 1).toUpperCase();
+  $('loginScreen').hidden = true;
+  $('app').hidden = false;
+  load();
+}
+
+function showLogin(message) {
+  Object.assign(state, { user: null, profile: null, users: [], rows: [], outlets: [], tab: null, drafts: {}, saving: {} });
+  $('app').hidden = true;
+  $('loginScreen').hidden = false;
+  $('loginError').textContent = message || '';
+  $('loginPass').value = '';
+  $('loginUser').focus();
+}
+
+async function signIn(e) {
+  e.preventDefault();
+  const name = $('loginUser').value.trim();
+  const password = $('loginPass').value;
+  if (!name || !password) { $('loginError').textContent = 'Enter your username and password.'; return; }
+  const email = name.includes('@') ? name : name.toLowerCase() + '@' + EMAIL_DOMAIN;
+  $('loginBtn').disabled = true;
+  $('loginBtn').textContent = 'Signing in…';
+  $('loginError').textContent = '';
+  const { data, error } = await sb.auth.signInWithPassword({ email, password });
+  $('loginBtn').disabled = false;
+  $('loginBtn').textContent = 'Sign in';
+  if (error) { $('loginError').textContent = 'Wrong username or password.'; return; }
+  await enter(data.user);
+}
+
+async function signOut() {
+  if (Object.keys(state.drafts).length && !confirm('You have unsaved changes. Sign out anyway?')) return;
+  state.drafts = {};
+  await sb.auth.signOut();
+  showLogin();
+}
+
+/* ---------- Data ---------- */
 async function load() {
   setSync('Syncing…');
   try {
-    const rows = await api('latest_stock?select=*&order=sku');
+    const { data: rows, error } = await sb.from('latest_stock').select('*').order('sku');
+    if (error) throw error;
     state.rows = rows;
     const seen = new Map();
     rows.forEach((r) => seen.set(r.outlet_id, r.outlet));
@@ -282,12 +436,11 @@ async function saveItem(key) {
   updateCard(key);
   const counted_at = todaySG();
   try {
-    await api('stock_counts?on_conflict=outlet_id,sku,counted_at', {
-      method: 'POST',
-      headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
-      body: JSON.stringify({ outlet_id: row.outlet_id, sku: row.sku, qty_on_hand: d.qty, reorder_level: d.reorder, counted_at }),
-    });
-    Object.assign(row, { qty_on_hand: d.qty, reorder_level: d.reorder, needs_reorder: d.qty <= d.reorder, counted_at });
+    const { error } = await sb.from('stock_counts').upsert(
+      { outlet_id: row.outlet_id, sku: row.sku, qty_on_hand: d.qty, reorder_level: d.reorder, counted_at, updated_by: state.user.id },
+      { onConflict: 'outlet_id,sku,counted_at' });
+    if (error) throw error;
+    Object.assign(row, { qty_on_hand: d.qty, reorder_level: d.reorder, needs_reorder: d.qty <= d.reorder, counted_at, updated_by_name: state.profile.username });
     delete state.drafts[key];
     toast(row.item_name + ' saved for ' + row.outlet);
     setSync('Synced ' + new Date().toLocaleTimeString('en-SG', { hour: '2-digit', minute: '2-digit' }), 'ok');
@@ -310,7 +463,9 @@ function current(r) {
 function render() {
   renderKpis();
   renderTabs();
-  state.tab === ORDER_TAB ? renderOrder() : renderOutlet();
+  if (state.tab === ORDER_TAB) renderOrder();
+  else if (state.tab === USERS_TAB) renderUsers();
+  else renderOutlet();
 }
 
 function renderKpis() {
@@ -335,6 +490,7 @@ function renderTabs() {
   });
   const lines = orderLines().length;
   tabs.push(`<button class="tab" role="tab" data-tab="${ORDER_TAB}" aria-selected="${state.tab === ORDER_TAB}">Order from suppliers<span class="count${lines ? ' hot' : ''}">${lines}</span></button>`);
+  if (isAdmin()) tabs.push(`<button class="tab" role="tab" data-tab="${USERS_TAB}" aria-selected="${state.tab === USERS_TAB}">Users</button>`);
   $('tabs').innerHTML = tabs.join('');
 }
 
@@ -414,7 +570,10 @@ function updateCard(key) {
   const short = shortfall(c.qty, c.reorder);
   if (state.saving[key]) { status.textContent = 'Saving…'; status.className = 'status'; }
   else if (dirty) { status.textContent = 'Unsaved changes'; status.className = 'status dirty'; }
-  else { status.textContent = (short ? short + ' short · ' : '') + 'Counted ' + fmtDate(r.counted_at); status.className = 'status'; }
+  else {
+    status.textContent = (short ? short + ' short · ' : '') + 'Counted ' + fmtDate(r.counted_at) + (r.updated_by_name ? ' by ' + r.updated_by_name : '');
+    status.className = 'status';
+  }
   el.querySelector('[data-save]').disabled = !dirty || !!state.saving[key];
   el.querySelector('[data-cancel]').style.visibility = dirty && !state.saving[key] ? 'visible' : 'hidden';
 }
@@ -496,6 +655,112 @@ async function copyText(text) {
   return ok;
 }
 
+/* ---------- Users (admin) ---------- */
+// Creating users and resetting passwords needs the service role, so it runs in the admin-users Edge Function.
+async function adminCall(body) {
+  const { data, error } = await sb.functions.invoke('admin-users', { body });
+  if (error) {
+    let msg = error.message;
+    try { const j = await error.context.json(); msg = j.error || msg; } catch (e) {}
+    throw new Error(msg);
+  }
+  return data;
+}
+
+async function loadUsers() {
+  try {
+    state.users = (await adminCall({ action: 'list' })).users;
+  } catch (err) {
+    toast('Couldn’t load users: ' + err.message);
+  }
+  if (state.tab === USERS_TAB) renderUsers();
+}
+
+function renderUsers() {
+  const rows = state.users.map((u) => `<tr>
+      <td><strong>${esc(u.username)}</strong>${u.username === state.profile.username ? ' <span class="sub" style="display:inline">(you)</span>' : ''}</td>
+      <td><span class="role ${u.role === 'admin' ? 'admin' : ''}">${u.role === 'admin' ? 'Admin' : 'Staff'}</span></td>
+      <td>${fmtDate(u.created_at.slice(0, 10))}</td>
+      <td><button class="btn" type="button" data-reset="${esc(u.id)}" data-name="${esc(u.username)}">Reset password</button></td>
+    </tr>`).join('');
+  $('view').innerHTML = `<div class="users-layout">
+    <div class="card order-card">
+      <div class="panel-head"><h2>Team</h2><p>Everyone who can sign in to the stock tracker.</p></div>
+      <div class="table-wrap"><table id="usersTable">
+        <thead><tr><th>Username</th><th>Role</th><th>Added</th><th></th></tr></thead>
+        <tbody>${rows || '<tr><td colspan="4" class="zero">Loading users…</td></tr>'}</tbody>
+      </table></div>
+    </div>
+    <form class="card" id="addUserForm" novalidate>
+      <div class="panel-head"><h2>Add a user</h2><p>They sign in with this username and password.</p></div>
+      <div class="panel-body">
+        <div class="form-field"><label for="newUsername">Username</label>
+          <input class="input" id="newUsername" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="e.g. Mei"></div>
+        <div class="form-field"><label for="newPassword">Initial password</label>
+          <input class="input" id="newPassword" type="text" autocomplete="off" placeholder="At least 6 characters"></div>
+        <div class="form-field"><label for="newRole">Role</label>
+          <select class="input" id="newRole"><option value="staff">Staff — update stock</option><option value="admin">Admin — also manage users</option></select></div>
+        <p class="form-error" id="addUserError" role="alert"></p>
+        <button class="btn primary block" type="submit" id="addUserBtn">Add user</button>
+      </div>
+    </form>
+  </div>`;
+}
+
+async function addUser(e) {
+  e.preventDefault();
+  const username = $('newUsername').value.trim();
+  const password = $('newPassword').value;
+  const role = $('newRole').value;
+  const err = $('addUserError');
+  if (!/^[A-Za-z0-9._-]{2,30}$/.test(username)) { err.textContent = 'Username: 2–30 letters, numbers, dots, dashes or underscores.'; return; }
+  if (password.length < 6) { err.textContent = 'Password must be at least 6 characters.'; return; }
+  $('addUserBtn').disabled = true;
+  err.textContent = '';
+  try {
+    await adminCall({ action: 'create', username, password, role });
+    toast(username + ' added — they can sign in now');
+    await loadUsers();
+  } catch (ex) {
+    err.textContent = ex.message;
+    $('addUserBtn').disabled = false;
+  }
+}
+
+/* ---------- Password dialog ---------- */
+function openPwDialog(target) {
+  state.pwTarget = target;
+  $('pwTitle').textContent = target ? 'Reset password for ' + target.username : 'Change your password';
+  $('pwLead').textContent = target ? 'Give them the new password; they can change it after signing in.' : 'You’ll stay signed in on this device.';
+  $('pwNew').value = $('pwConfirm').value = '';
+  $('pwError').textContent = '';
+  $('pwSubmit').disabled = false;
+  $('pwDialog').showModal();
+  $('pwNew').focus();
+}
+
+async function submitPw(e) {
+  e.preventDefault();
+  const pw = $('pwNew').value;
+  if (pw.length < 6) { $('pwError').textContent = 'Password must be at least 6 characters.'; return; }
+  if (pw !== $('pwConfirm').value) { $('pwError').textContent = 'The two passwords don’t match.'; return; }
+  $('pwSubmit').disabled = true;
+  try {
+    if (state.pwTarget) {
+      await adminCall({ action: 'reset_password', user_id: state.pwTarget.id, password: pw });
+      toast('Password reset for ' + state.pwTarget.username);
+    } else {
+      const { error } = await sb.auth.updateUser({ password: pw });
+      if (error) throw error;
+      toast('Your password has been changed');
+    }
+    $('pwDialog').close();
+  } catch (ex) {
+    $('pwError').textContent = ex.message;
+    $('pwSubmit').disabled = false;
+  }
+}
+
 /* ---------- UI helpers ---------- */
 function setSync(text, kind) {
   $('syncText').innerHTML = `<span class="dot ${kind || ''}"></span>${esc(text)}`;
@@ -515,9 +780,16 @@ $('tabs').addEventListener('click', (e) => {
   state.tab = b.dataset.tab;
   state.category = 'All';
   render();
+  if (state.tab === USERS_TAB) loadUsers();
+});
+
+$('view').addEventListener('submit', (e) => {
+  if (e.target.id === 'addUserForm') addUser(e);
 });
 
 $('view').addEventListener('click', async (e) => {
+  const reset = e.target.closest('[data-reset]');
+  if (reset) { openPwDialog({ id: reset.dataset.reset, username: reset.dataset.name }); return; }
   const chip = e.target.closest('[data-cat]');
   if (chip) { state.category = chip.dataset.cat; renderOutlet(); return; }
   if (e.target.closest('#copyBtn')) {
@@ -564,7 +836,13 @@ window.addEventListener('beforeunload', (e) => {
   if (Object.keys(state.drafts).length) { e.preventDefault(); e.returnValue = ''; }
 });
 
-load();
+$('loginForm').addEventListener('submit', signIn);
+$('signOutBtn').addEventListener('click', signOut);
+$('changePwBtn').addEventListener('click', () => openPwDialog(null));
+$('pwForm').addEventListener('submit', submitPw);
+$('pwCancel').addEventListener('click', () => $('pwDialog').close());
+
+boot();
 </script>
 </body>
 </html>
