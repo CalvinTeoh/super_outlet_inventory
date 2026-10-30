@@ -1,0 +1,570 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Super Outlet Inventory</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f6f7f9;
+    --surface: #ffffff;
+    --surface-2: #f9fafb;
+    --border: #e4e7ec;
+    --text: #1d2433;
+    --muted: #667085;
+    --faint: #98a2b3;
+    --accent: #e2711d;
+    --accent-hover: #c95f12;
+    --accent-soft: #fdf1e7;
+    --accent-text: #a8500f;
+    --shadow: 0 1px 2px rgba(16, 24, 40, .04), 0 1px 3px rgba(16, 24, 40, .06);
+    --radius: 14px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #12151b; --surface: #1a1e26; --surface-2: #20252e; --border: #2c323d;
+      --text: #e7eaf0; --muted: #a0a8b6; --faint: #6e7684;
+      --accent: #f08a3c; --accent-hover: #f59d58; --accent-soft: #3a2616; --accent-text: #f6a463;
+      --shadow: 0 1px 2px rgba(0,0,0,.3);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #12151b; --surface: #1a1e26; --surface-2: #20252e; --border: #2c323d;
+    --text: #e7eaf0; --muted: #a0a8b6; --faint: #6e7684;
+    --accent: #f08a3c; --accent-hover: #f59d58; --accent-soft: #3a2616; --accent-text: #f6a463;
+    --shadow: 0 1px 2px rgba(0,0,0,.3);
+  }
+
+  * { box-sizing: border-box; }
+  html { font-size: 18px; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+    line-height: 1.45; -webkit-font-smoothing: antialiased;
+  }
+  button, input { font: inherit; color: inherit; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 32px 24px 64px; }
+
+  /* Header */
+  .top { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 28px; }
+  .eyebrow { font-size: .78rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--accent-text); margin: 0 0 6px; display: flex; align-items: center; gap: 10px; }
+  .logo { width: 40px; height: 40px; flex: none; }
+  h1 { font-size: 1.9rem; font-weight: 700; letter-spacing: -.02em; margin: 0; }
+  .sync { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: .9rem; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--faint); display: inline-block; margin-right: 6px; }
+  .dot.ok { background: #3fa66b; }
+  .dot.err { background: var(--accent); }
+
+  .btn {
+    border: 1px solid var(--border); background: var(--surface); border-radius: 10px;
+    padding: 10px 16px; font-weight: 600; font-size: .9rem; cursor: pointer; box-shadow: var(--shadow);
+    transition: background .15s, border-color .15s, opacity .15s;
+  }
+  .btn:hover { background: var(--surface-2); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn.primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+  .btn:disabled { opacity: .45; cursor: not-allowed; box-shadow: none; }
+  .btn.primary:disabled { background: var(--surface-2); border-color: var(--border); color: var(--faint); }
+  .btn.ghost { background: transparent; border-color: transparent; box-shadow: none; color: var(--muted); padding: 10px 10px; }
+  .btn.ghost:hover { color: var(--text); background: transparent; }
+
+  /* KPIs */
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); }
+  .kpi { padding: 20px 22px; }
+  .kpi .label { color: var(--muted); font-size: .85rem; font-weight: 500; }
+  .kpi .value { font-size: 2rem; font-weight: 700; letter-spacing: -.02em; margin-top: 4px; font-variant-numeric: tabular-nums; }
+  .kpi .value.accent { color: var(--accent); }
+  .kpi .sub { color: var(--faint); font-size: .8rem; margin-top: 2px; }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 20px; overflow-x: auto; scrollbar-width: none; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab {
+    background: none; border: 0; padding: 12px 16px; font-weight: 600; font-size: 1rem; color: var(--muted);
+    cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .tab:hover { color: var(--text); }
+  .tab[aria-selected="true"] { color: var(--text); border-bottom-color: var(--accent); }
+  .count { font-size: .75rem; font-weight: 600; border-radius: 999px; padding: 2px 8px; background: var(--surface-2); color: var(--muted); border: 1px solid var(--border); }
+  .count.hot { background: var(--accent-soft); color: var(--accent-text); border-color: transparent; }
+
+  /* Category chips */
+  .toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip {
+    border: 1px solid var(--border); background: var(--surface); color: var(--muted);
+    border-radius: 999px; padding: 7px 14px; font-size: .88rem; font-weight: 500; cursor: pointer;
+  }
+  .chip:hover { color: var(--text); }
+  .chip[aria-pressed="true"] { background: var(--text); color: var(--surface); border-color: var(--text); }
+  .toggle { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: .9rem; cursor: pointer; user-select: none; }
+  .toggle input { accent-color: var(--accent); width: 18px; height: 18px; }
+
+  /* Item grid */
+  .group-title { font-size: .8rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 28px 0 12px; }
+  .group-title:first-child { margin-top: 0; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+  .item { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+  .item.low { border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); }
+  .item-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+  .item h3 { font-size: 1.1rem; font-weight: 600; margin: 0; letter-spacing: -.01em; }
+  .meta { color: var(--faint); font-size: .82rem; margin: 2px 0 0; }
+  .badge { font-size: .78rem; font-weight: 700; border-radius: 6px; padding: 3px 9px; white-space: nowrap; }
+  .badge.low { background: var(--accent-soft); color: var(--accent-text); }
+  .badge.ok { background: var(--surface-2); color: var(--muted); border: 1px solid var(--border); }
+
+  .fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .field label { display: block; font-size: .8rem; font-weight: 500; color: var(--muted); margin-bottom: 6px; }
+  .stepper { display: flex; align-items: stretch; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: var(--surface-2); }
+  .stepper button { width: 42px; border: 0; background: transparent; font-size: 1.2rem; cursor: pointer; color: var(--muted); }
+  .stepper button:hover { background: var(--border); color: var(--text); }
+  .stepper input {
+    width: 100%; min-width: 0; text-align: center; border: 0; background: var(--surface);
+    font-size: 1.25rem; font-weight: 600; padding: 8px 0; font-variant-numeric: tabular-nums;
+    border-left: 1px solid var(--border); border-right: 1px solid var(--border);
+    -moz-appearance: textfield;
+  }
+  .stepper input::-webkit-outer-spin-button, .stepper input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .stepper input:focus { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+  .meter { height: 6px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--border); overflow: hidden; }
+  .meter span { display: block; height: 100%; background: var(--faint); border-radius: 999px; transition: width .2s; }
+  .item.low .meter span { background: var(--accent); }
+
+  .item-foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .status { font-size: .82rem; color: var(--faint); }
+  .status.dirty { color: var(--accent-text); font-weight: 500; }
+  .actions { display: flex; gap: 4px; align-items: center; }
+
+  /* Order */
+  .order-card { overflow: hidden; }
+  .order-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 20px 22px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+  .order-head h2 { margin: 0; font-size: 1.25rem; letter-spacing: -.01em; }
+  .order-head p { margin: 2px 0 0; color: var(--muted); font-size: .88rem; }
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  th, td { padding: 14px 22px; text-align: right; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  th:first-child, td:first-child { text-align: left; white-space: normal; }
+  th { font-size: .78rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); background: var(--surface-2); }
+  td.cat { font-size: .78rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); background: var(--surface-2); padding-top: 10px; padding-bottom: 10px; }
+  td .sub { display: block; color: var(--faint); font-size: .8rem; }
+  td.zero { color: var(--faint); }
+  td.total { font-weight: 700; color: var(--accent-text); font-size: 1.1rem; }
+  tfoot td { font-weight: 700; border-bottom: 0; }
+  .empty { padding: 48px 22px; text-align: center; color: var(--muted); }
+
+  .banner { padding: 16px 20px; margin-bottom: 20px; border-radius: var(--radius); background: var(--accent-soft); color: var(--accent-text); font-weight: 500; }
+  .skeleton { padding: 60px; text-align: center; color: var(--muted); }
+
+  .toast {
+    position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%) translateY(20px);
+    background: var(--text); color: var(--surface); padding: 12px 20px; border-radius: 10px;
+    font-weight: 500; font-size: .92rem; opacity: 0; pointer-events: none; transition: all .2s; box-shadow: 0 8px 24px rgba(0,0,0,.18);
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  @media (max-width: 860px) { .kpis { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 520px) {
+    html { font-size: 17px; }
+    .wrap { padding: 20px 16px 48px; }
+    .grid { grid-template-columns: 1fr; }
+    .kpi { padding: 16px; }
+    .kpi .value { font-size: 1.6rem; }
+    th, td { padding: 12px 14px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <p class="eyebrow">
+        <svg class="logo" viewBox="0 0 48 48" aria-hidden="true">
+          <path d="M17 9c-2 2 2 4 0 6M24 7c-2 2 2 4 0 6M31 9c-2 2 2 4 0 6" fill="none" stroke="#a78bfa" stroke-width="2.4" stroke-linecap="round"/>
+          <path d="M36 23h3a5 5 0 0 1 0 10h-3" fill="none" stroke="#38bdf8" stroke-width="3.2" stroke-linecap="round"/>
+          <path d="M9 19h29v12a12 12 0 0 1-12 12h-5A12 12 0 0 1 9 31z" fill="#fb923c"/>
+          <path d="M9 19h29v4H9z" fill="#fdba74"/>
+          <circle cx="18" cy="29" r="2" fill="#3b2a20"/><circle cx="29" cy="29" r="2" fill="#3b2a20"/>
+          <circle cx="15" cy="33" r="2.2" fill="#f472b6" opacity=".8"/><circle cx="32" cy="33" r="2.2" fill="#f472b6" opacity=".8"/>
+          <path d="M21 33q2.5 2.6 5 0" fill="none" stroke="#3b2a20" stroke-width="1.8" stroke-linecap="round"/>
+          <ellipse cx="23.5" cy="44.5" rx="17" ry="2" fill="#4ade80" opacity=".55"/>
+        </svg>
+        Super Outlet Inventory
+      </p>
+      <h1>Stock Tracker</h1>
+    </div>
+    <div class="sync">
+      <span id="syncText"><span class="dot"></span>Connecting…</span>
+      <button class="btn" id="refreshBtn" type="button">Refresh</button>
+    </div>
+  </header>
+
+  <div id="banner"></div>
+
+  <section class="kpis" id="kpis"></section>
+
+  <nav class="tabs" id="tabs" role="tablist"></nav>
+
+  <main id="view"><div class="card skeleton">Loading stock…</div></main>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+const SUPABASE_URL = 'https://izsqgsqsofyyfkbqkgol.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_e2MLdF6EhsfeeOOyN4PYhA_vrmhd4-y';
+const OUTLET_ORDER = ['Tampines', 'Orchard', 'Jurong'];
+const CATEGORY_ORDER = ['Dairy', 'Coffee', 'Powders & Syrups', 'Cups & Packaging', 'Bakery', 'Other'];
+const ORDER_TAB = '__order';
+
+const state = {
+  rows: [],          // latest_stock rows
+  outlets: [],       // [{id, name}]
+  tab: null,
+  category: 'All',
+  lowOnly: false,
+  drafts: {},        // key -> {qty, reorder}
+  saving: {},
+};
+
+const $ = (id) => document.getElementById(id);
+const keyOf = (r) => r.outlet_id + '|' + r.sku;
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const todaySG = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Singapore' }).format(new Date());
+const fmtDate = (d) => new Date(d + 'T00:00:00').toLocaleDateString('en-SG', { day: 'numeric', month: 'short', year: 'numeric' });
+const catRank = (c) => { const i = CATEGORY_ORDER.indexOf(c); return i === -1 ? 99 : i; };
+const shortfall = (qty, reorder) => Math.max(reorder - qty, 0);
+
+/* ---------- Supabase REST ---------- */
+async function api(path, opts = {}) {
+  const res = await fetch(SUPABASE_URL + '/rest/v1/' + path, {
+    ...opts,
+    headers: { apikey: SUPABASE_KEY, 'Content-Type': 'application/json', ...(opts.headers || {}) },
+  });
+  if (!res.ok) {
+    let msg = res.status + ' ' + res.statusText;
+    try { const j = await res.json(); msg = j.message || msg; } catch (e) {}
+    throw new Error(msg);
+  }
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
+}
+
+async function load() {
+  setSync('Syncing…');
+  try {
+    const rows = await api('latest_stock?select=*&order=sku');
+    state.rows = rows;
+    const seen = new Map();
+    rows.forEach((r) => seen.set(r.outlet_id, r.outlet));
+    state.outlets = [...seen].map(([id, name]) => ({ id, name }))
+      .sort((a, b) => (OUTLET_ORDER.indexOf(a.name) + 1 || 99) - (OUTLET_ORDER.indexOf(b.name) + 1 || 99));
+    if (!state.tab) state.tab = state.outlets[0] ? state.outlets[0].id : ORDER_TAB;
+    $('banner').innerHTML = '';
+    setSync('Synced ' + new Date().toLocaleTimeString('en-SG', { hour: '2-digit', minute: '2-digit' }), 'ok');
+    render();
+  } catch (err) {
+    setSync('Offline', 'err');
+    $('banner').innerHTML = '<div class="banner">Couldn’t load stock from Supabase: ' + esc(err.message) + '</div>';
+    if (!state.rows.length) $('view').innerHTML = '';
+  }
+}
+
+async function saveItem(key) {
+  const row = state.rows.find((r) => keyOf(r) === key);
+  const d = state.drafts[key];
+  if (!row || !d || state.saving[key]) return;
+  state.saving[key] = true;
+  updateCard(key);
+  const counted_at = todaySG();
+  try {
+    await api('stock_counts?on_conflict=outlet_id,sku,counted_at', {
+      method: 'POST',
+      headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
+      body: JSON.stringify({ outlet_id: row.outlet_id, sku: row.sku, qty_on_hand: d.qty, reorder_level: d.reorder, counted_at }),
+    });
+    Object.assign(row, { qty_on_hand: d.qty, reorder_level: d.reorder, needs_reorder: d.qty <= d.reorder, counted_at });
+    delete state.drafts[key];
+    toast(row.item_name + ' saved for ' + row.outlet);
+    setSync('Synced ' + new Date().toLocaleTimeString('en-SG', { hour: '2-digit', minute: '2-digit' }), 'ok');
+  } catch (err) {
+    toast('Save failed: ' + err.message);
+  } finally {
+    delete state.saving[key];
+    renderKpis();
+    renderTabs();
+    updateCard(key);
+  }
+}
+
+/* ---------- Rendering ---------- */
+function current(r) {
+  const d = state.drafts[keyOf(r)];
+  return d ? { qty: d.qty, reorder: d.reorder } : { qty: r.qty_on_hand, reorder: r.reorder_level };
+}
+
+function render() {
+  renderKpis();
+  renderTabs();
+  state.tab === ORDER_TAB ? renderOrder() : renderOutlet();
+}
+
+function renderKpis() {
+  const low = state.rows.filter((r) => r.qty_on_hand <= r.reorder_level);
+  const units = state.rows.reduce((s, r) => s + shortfall(r.qty_on_hand, r.reorder_level), 0);
+  const skus = new Set(low.filter((r) => r.qty_on_hand < r.reorder_level).map((r) => r.sku)).size;
+  const last = state.rows.reduce((m, r) => (r.counted_at > m ? r.counted_at : m), '');
+  const kpi = (label, value, sub, accent) =>
+    `<div class="card kpi"><div class="label">${label}</div><div class="value${accent ? ' accent' : ''}">${value}</div><div class="sub">${sub}</div></div>`;
+  $('kpis').innerHTML =
+    kpi('Low items', low.length, 'across ' + state.outlets.length + ' outlets', low.length > 0) +
+    kpi('Units to order', units, skus + ' SKUs short', false) +
+    kpi('Items tracked', state.rows.length, new Set(state.rows.map((r) => r.sku)).size + ' SKUs per chain', false) +
+    kpi('Last count', last ? new Date(last + 'T00:00:00').toLocaleDateString('en-SG', { day: 'numeric', month: 'short' }) : '—',
+      last ? 'latest save · ' + last.slice(0, 4) : 'no counts yet', false);
+}
+
+function renderTabs() {
+  const tabs = state.outlets.map((o) => {
+    const n = state.rows.filter((r) => r.outlet_id === o.id && r.qty_on_hand <= r.reorder_level).length;
+    return `<button class="tab" role="tab" data-tab="${o.id}" aria-selected="${state.tab === o.id}">${esc(o.name)}<span class="count${n ? ' hot' : ''}">${n} low</span></button>`;
+  });
+  const lines = orderLines().length;
+  tabs.push(`<button class="tab" role="tab" data-tab="${ORDER_TAB}" aria-selected="${state.tab === ORDER_TAB}">Order from suppliers<span class="count${lines ? ' hot' : ''}">${lines}</span></button>`);
+  $('tabs').innerHTML = tabs.join('');
+}
+
+function renderOutlet() {
+  const rows = state.rows.filter((r) => r.outlet_id === state.tab);
+  const cats = [...new Set(rows.map((r) => r.category))].sort((a, b) => catRank(a) - catRank(b));
+  const chips = ['All', ...cats].map((c) =>
+    `<button class="chip" data-cat="${esc(c)}" aria-pressed="${state.category === c}">${esc(c)}</button>`).join('');
+
+  let shown = rows.filter((r) => state.category === 'All' || r.category === state.category);
+  if (state.lowOnly) shown = shown.filter((r) => { const c = current(r); return c.qty <= c.reorder; });
+
+  const groups = {};
+  shown.forEach((r) => (groups[r.category] = groups[r.category] || []).push(r));
+  const body = Object.keys(groups).sort((a, b) => catRank(a) - catRank(b)).map((c) =>
+    `<h2 class="group-title">${esc(c)}</h2><div class="grid">${groups[c].map(cardHTML).join('')}</div>`).join('');
+
+  $('view').innerHTML = `
+    <div class="toolbar">
+      <div class="chips">${chips}</div>
+      <label class="toggle"><input type="checkbox" id="lowOnly" ${state.lowOnly ? 'checked' : ''}> Show low only</label>
+    </div>
+    ${body || '<div class="card empty">Nothing to show here — no items match this filter.</div>'}`;
+  // Cards render as empty shells; updateCard fills values, badge and status.
+  shown.forEach((r) => updateCard(keyOf(r)));
+}
+
+function cardHTML(r) {
+  const k = keyOf(r);
+  return `<article class="card item" data-key="${k}">
+    <div class="item-head">
+      <div><h3>${esc(r.item_name)}</h3><p class="meta">${esc(r.sku)} · per ${esc(r.unit)}</p></div>
+      <span class="badge" data-badge></span>
+    </div>
+    <div class="fields">
+      <div class="field"><label for="q-${k}">On hand</label>
+        <div class="stepper"><button type="button" data-step="-1" data-f="qty" aria-label="Remove one">−</button>
+        <input id="q-${k}" type="number" min="0" inputmode="numeric" data-f="qty">
+        <button type="button" data-step="1" data-f="qty" aria-label="Add one">+</button></div>
+      </div>
+      <div class="field"><label for="r-${k}">Reorder level</label>
+        <div class="stepper"><button type="button" data-step="-1" data-f="reorder" aria-label="Lower reorder level">−</button>
+        <input id="r-${k}" type="number" min="0" inputmode="numeric" data-f="reorder">
+        <button type="button" data-step="1" data-f="reorder" aria-label="Raise reorder level">+</button></div>
+      </div>
+    </div>
+    <div class="meter" aria-hidden="true"><span data-meter></span></div>
+    <div class="item-foot">
+      <span class="status" data-status></span>
+      <div class="actions">
+        <button type="button" class="btn ghost" data-cancel>Cancel</button>
+        <button type="button" class="btn primary" data-save>Save</button>
+      </div>
+    </div>
+  </article>`;
+}
+
+// Fill / refresh one card in place so typing never loses focus.
+function updateCard(key) {
+  const el = document.querySelector(`.item[data-key="${CSS.escape(key)}"]`);
+  const r = state.rows.find((x) => keyOf(x) === key);
+  if (!el || !r) return;
+  const c = current(r);
+  const dirty = !!state.drafts[key];
+  const low = c.qty <= c.reorder;
+  el.classList.toggle('low', low);
+  const badge = el.querySelector('[data-badge]');
+  badge.className = 'badge ' + (low ? 'low' : 'ok');
+  badge.textContent = low ? 'Low' : 'In stock';
+  el.querySelectorAll('input[data-f]').forEach((inp) => {
+    const v = inp.dataset.f === 'qty' ? c.qty : c.reorder;
+    if (document.activeElement !== inp || inp.value === '') inp.value = v;
+  });
+  const cap = Math.max(c.reorder * 2, c.qty, 1);
+  el.querySelector('[data-meter]').style.width = Math.min(100, (c.qty / cap) * 100) + '%';
+  const status = el.querySelector('[data-status]');
+  const short = shortfall(c.qty, c.reorder);
+  if (state.saving[key]) { status.textContent = 'Saving…'; status.className = 'status'; }
+  else if (dirty) { status.textContent = 'Unsaved changes'; status.className = 'status dirty'; }
+  else { status.textContent = (short ? short + ' short · ' : '') + 'Counted ' + fmtDate(r.counted_at); status.className = 'status'; }
+  el.querySelector('[data-save]').disabled = !dirty || !!state.saving[key];
+  el.querySelector('[data-cancel]').style.visibility = dirty && !state.saving[key] ? 'visible' : 'hidden';
+}
+
+function setDraft(key, field, value) {
+  const r = state.rows.find((x) => keyOf(x) === key);
+  const d = state.drafts[key] || { qty: r.qty_on_hand, reorder: r.reorder_level };
+  d[field] = Math.max(0, Math.floor(Number(value) || 0));
+  if (d.qty === r.qty_on_hand && d.reorder === r.reorder_level) delete state.drafts[key];
+  else state.drafts[key] = d;
+  updateCard(key);
+}
+
+/* ---------- Supplier order ---------- */
+function orderLines() {
+  const bySku = new Map();
+  state.rows.forEach((r) => {
+    const s = shortfall(r.qty_on_hand, r.reorder_level);
+    if (!s) return;
+    if (!bySku.has(r.sku)) bySku.set(r.sku, { sku: r.sku, item_name: r.item_name, unit: r.unit, category: r.category, per: {}, total: 0 });
+    const line = bySku.get(r.sku);
+    line.per[r.outlet_id] = s;
+    line.total += s;
+  });
+  return [...bySku.values()].sort((a, b) => catRank(a.category) - catRank(b.category) || a.sku.localeCompare(b.sku));
+}
+
+function renderOrder() {
+  const lines = orderLines();
+  const head = `<div class="order-head">
+      <div><h2>Order from suppliers</h2><p>Shortfall = reorder level − on hand, summed across all outlets. Uses saved counts only.</p></div>
+      <button class="btn primary" id="copyBtn" type="button" ${lines.length ? '' : 'disabled'}>Copy order list</button>
+    </div>`;
+  if (!lines.length) {
+    $('view').innerHTML = `<div class="card order-card">${head}<div class="empty">Every outlet is at or above its reorder level. Nothing to order.</div></div>`;
+    return;
+  }
+  let lastCat = null;
+  const cols = state.outlets.length + 2;
+  const body = lines.map((l) => {
+    let out = '';
+    if (l.category !== lastCat) { out += `<tr><td class="cat" colspan="${cols}">${esc(l.category)}</td></tr>`; lastCat = l.category; }
+    out += `<tr><td>${esc(l.item_name)}<span class="sub">${esc(l.sku)} · ${esc(l.unit)}</span></td>` +
+      state.outlets.map((o) => l.per[o.id] ? `<td>${l.per[o.id]}</td>` : '<td class="zero">—</td>').join('') +
+      `<td class="total">${l.total}</td></tr>`;
+    return out;
+  }).join('');
+  const totals = state.outlets.map((o) => `<td>${lines.reduce((s, l) => s + (l.per[o.id] || 0), 0)}</td>`).join('');
+  const grand = lines.reduce((s, l) => s + l.total, 0);
+  $('view').innerHTML = `<div class="card order-card">${head}
+    <div class="table-wrap"><table>
+      <thead><tr><th>Item</th>${state.outlets.map((o) => `<th>${esc(o.name)}</th>`).join('')}<th>Total</th></tr></thead>
+      <tbody>${body}</tbody>
+      <tfoot><tr><td>All items</td>${totals}<td class="total">${grand}</td></tr></tfoot>
+    </table></div></div>`;
+}
+
+function orderText() {
+  const lines = orderLines();
+  const out = ['Supplier order – ' + fmtDate(todaySG()), ''];
+  let lastCat = null;
+  lines.forEach((l) => {
+    if (l.category !== lastCat) { if (lastCat) out.push(''); out.push(l.category.toUpperCase()); lastCat = l.category; }
+    const split = state.outlets.filter((o) => l.per[o.id]).map((o) => o.name + ' ' + l.per[o.id]).join(', ');
+    out.push(`- ${l.item_name} (${l.sku}): ${l.total} × ${l.unit}  [${split}]`);
+  });
+  out.push('', 'Total units: ' + lines.reduce((s, l) => s + l.total, 0));
+  return out.join('\n');
+}
+
+async function copyText(text) {
+  try { await navigator.clipboard.writeText(text); return true; } catch (e) {}
+  const ta = document.createElement('textarea');
+  ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta); ta.select();
+  let ok = false;
+  try { ok = document.execCommand('copy'); } catch (e) {}
+  ta.remove();
+  return ok;
+}
+
+/* ---------- UI helpers ---------- */
+function setSync(text, kind) {
+  $('syncText').innerHTML = `<span class="dot ${kind || ''}"></span>${esc(text)}`;
+}
+let toastTimer;
+function toast(msg) {
+  const t = $('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2400);
+}
+
+/* ---------- Events ---------- */
+$('tabs').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-tab]');
+  if (!b) return;
+  state.tab = b.dataset.tab;
+  state.category = 'All';
+  render();
+});
+
+$('view').addEventListener('click', async (e) => {
+  const chip = e.target.closest('[data-cat]');
+  if (chip) { state.category = chip.dataset.cat; renderOutlet(); return; }
+  if (e.target.closest('#copyBtn')) {
+    toast((await copyText(orderText())) ? 'Order list copied to clipboard' : 'Copy failed — select the table instead');
+    return;
+  }
+  const card = e.target.closest('.item');
+  if (!card) return;
+  const key = card.dataset.key;
+  const step = e.target.closest('[data-step]');
+  if (step) {
+    const r = state.rows.find((x) => keyOf(x) === key);
+    const c = current(r);
+    const f = step.dataset.f;
+    setDraft(key, f, (f === 'qty' ? c.qty : c.reorder) + Number(step.dataset.step));
+  } else if (e.target.closest('[data-save]')) {
+    saveItem(key);
+  } else if (e.target.closest('[data-cancel]')) {
+    delete state.drafts[key];
+    updateCard(key);
+  }
+});
+
+$('view').addEventListener('input', (e) => {
+  const inp = e.target.closest('input[data-f]');
+  if (!inp || inp.value === '') return;
+  setDraft(inp.closest('.item').dataset.key, inp.dataset.f, inp.value);
+});
+$('view').addEventListener('change', (e) => {
+  if (e.target.id === 'lowOnly') { state.lowOnly = e.target.checked; renderOutlet(); return; }
+  const inp = e.target.closest('input[data-f]');
+  if (inp) { setDraft(inp.closest('.item').dataset.key, inp.dataset.f, inp.value); updateCard(inp.closest('.item').dataset.key); }
+});
+$('view').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && e.target.matches('input[data-f]')) saveItem(e.target.closest('.item').dataset.key);
+});
+
+$('refreshBtn').addEventListener('click', () => {
+  if (Object.keys(state.drafts).length && !confirm('Discard unsaved changes and reload from Supabase?')) return;
+  state.drafts = {};
+  load();
+});
+window.addEventListener('beforeunload', (e) => {
+  if (Object.keys(state.drafts).length) { e.preventDefault(); e.returnValue = ''; }
+});
+
+load();
+</script>
+</body>
+</html>
